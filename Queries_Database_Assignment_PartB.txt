@@ -1,0 +1,138 @@
+Queries Database AssignmentPart B
+
+/* Queries Part B
+1)
+SELECT FIRSTNAME || ' ' || LASTNAME AS Name, ADDRESS || ', ' || CITY AS ADDRESS
+FROM person
+WHERE CITY = 'Portland';
+
+2)
+SELECT subject.subjectid, COUNT(book.BOOKDESCID) AS 'Total no. of books'
+FROM subject    
+LEFT JOIN book 
+    ON subject.SUBJECTID = book.SUBJECTID
+GROUP BY subject.SUBJECTID
+ORDER BY 'Total no. of books' DESC;
+
+3.a)
+SELECT DISTINCT person.FIRSTNAME, person.LASTNAME, person.CITY
+FROM person, borrow
+WHERE person.personid = borrow.personid;
+
+3.b)
+SELECT DISTINCT person.FIRSTNAME,  person.LASTNAME, person.CITY
+FROM person
+JOIN borrow
+    ON person.personid = borrow.personid;
+
+3.c)
+SELECT DISTINCT FIRSTNAME, LASTNAME, CITY
+FROM person
+WHERE personid IN (
+                    SELECT personid FROM borrow
+                  );
+
+4)
+SELECT DISTINCT bk.bookdescID AS 'Book Desc', bk.title AS 'Book Title'
+FROM book bk JOIN book_copy bkc 
+        	ON bk.bookdescID = bkc.bookdescID
+        JOIN written_by w 
+            ON bk.bookdescID = w.bookdescID
+        JOIN subject sub 
+            ON bk.subjectID = sub.subjectID
+WHERE sub.subjecttype = 'Databases'
+GROUP BY bk.bookdescID, bk.title
+HAVING COUNT(DISTINCT w.authorID) > 2;
+
+5)
+SELECT title AS "Book Title",
+firstname || ' ' || lastname AS "Borrower Name",
+date(br.returndate) AS "Date of Return",
+date(br.duedate) AS "Due Date",
+julianday(br.returndate) - julianday(br.duedate) AS "Days Delayed"
+FROM book b
+JOIN book_copy bc
+ON b.bookdescid = bc.bookdescid	
+            JOIN borrow_copy br_c 
+                        ON bc.bookdescid = br_c.bookid
+JOIN borrow br 
+ 		ON br_c.transactionid = br.transactionid
+  	JOIN person p 
+ON br.personid = p.personid
+WHERE br.returndate > br.duedate
+ORDER BY b.title;
+
+6)
+SELECT b.bookdescid AS 'Book description id', b.title AS title, b.year AS year
+  FROM book AS b
+  WHERE b.bookdescid NOT IN (
+                               SELECT bc.bookdescid
+                                   FROM book_copy bc JOIN borrow_copy AS boc 
+                                        ON bc.bookid = boc.bookid JOIN borrow AS bo 
+                                            ON boc.transactionid = bo.transactionid
+                             )
+  ORDER BY title ASC, year DESC;
+
+
+7)
+SELECT author.firstname, author.lastname, written_by.role, book.title 
+    FROM author JOIN written_by 
+        ON author.authorID = written_by.authorID
+    JOIN book 
+        ON written_by.bookdescID = book.bookdescID
+    WHERE written_by.role = 'Author' 
+    AND author.authorID IN (
+                                SELECT authorID 
+                                FROM written_by 
+                                WHERE role = 'Author'
+                                GROUP BY authorID 
+                                HAVING COUNT(DISTINCT bookdescID) > 1
+                            )
+    ORDER BY author.lastname, author.firstname;
+
+
+8)
+SELECT b.TITLE
+    FROM book b
+    WHERE UPPER(b.TITLE) LIKE '%NETWORK%'
+    AND NOT EXISTS (
+                        SELECT 1 FROM written_by w
+                        WHERE w.BOOKDESCID = b.BOOKDESCID
+                        AND w.AUTHORID NOT IN (
+                                                    SELECT a.AUTHORID
+                                                    FROM author a
+                                                    WHERE a.LASTNAME IN ('Miller', 'Noel')
+                                                    AND a.FIRSTNAME IN ('Tim', 'Jason')
+                                                )
+                    )
+    GROUP BY b.TITLE;
+
+
+9)
+SELECT DISTINCT b2.title, a.firstname || ' ' || a.lastname AS 'Author Name', b2.year
+    FROM book b1 JOIN written_by wb1 
+        ON b1.bookdescid = wb1.bookdescid
+    JOIN author a 
+        ON wb1.authorid = a.authorid
+    JOIN written_by wb2 
+         ON a.authorid = wb2.authorid
+    JOIN book b2 
+         ON wb2.bookdescid = b2.bookdescid
+    WHERE b1.title = 'COMPUTER SCIENCE' AND b1.bookdescid <> b2.bookdescid
+    ORDER BY a.lastname, a.firstname, b2.year DESC;
+
+
+10)
+SELECT pr.firstname || ' ' || pr.lastname AS 'Borrower', bk.title AS 'Book Title', sub.subjecttype AS 'Book Subject', strftime('%Y-%m-%d', br.borrowdate) AS 'Borrow Date', strftime('%Y-%m-%d', BR.returndate) AS 'Return Date'
+  FROM borrow AS br JOIN borrow_copy AS bwcy 
+           ON br.transactionID = bwcy.transactionID
+      JOIN book_copy AS bkcy
+           ON bkcy.bookID = bwcy.bookID
+       JOIN book AS bk 
+           ON bkcy.bookdescID = bk.bookdescID
+       JOIN subject AS sub 
+           ON bk.subjectID = sub.subjectID
+       JOIN person AS pr 
+           ON br.personID = pr.personID
+   WHERE sub.subjecttype LIKE '%Image Processing%'
+   ORDER BY br.borrowdate;

@@ -1,0 +1,194 @@
+---
+title: "assignment_2_new"
+author: "karan"
+date: "2023-05-26"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Clean the environment
+rm(list=ls())
+```
+
+## loading packages
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(lubridate)
+library(readr)
+library(car)
+library(knitr)
+
+```
+## loading dataset
+```{r}
+#loading dataset 
+setwd("C:/Users/sanka/OneDrive/Desktop/")
+store <- read.csv("IGA_v_woolsworth.csv")
+```
+
+## viewing and checking  dataset 
+```{r}
+# View the structure of the dataset
+str(store)
+
+# Summary statistics
+summary(store)
+
+# View the first few rows
+head(store)
+
+# checking null values in dataset 
+colSums(is.na(store))
+
+# checking unique values in each column 
+sapply(store, function(x) n_distinct(x, na.rm = TRUE))
+
+str(store)
+
+head(store)
+
+store$IGA.Price <- store$IGA.Price %>% as.numeric()
+store$WOW.Price <- store$WOW.Price %>% as.numeric()
+
+```
+
+
+```{r}
+store %>% summarise(Min = min(IGA.Price,na.rm = TRUE),
+ Q1 = quantile(IGA.Price,probs = .25,na.rm =
+TRUE),
+ Median = median(IGA.Price, na.rm = TRUE),
+ Q3 = quantile(IGA.Price,probs = .75,na.rm =
+TRUE),
+ Max = max(IGA.Price,na.rm = TRUE),
+ Mean = mean(IGA.Price, na.rm = TRUE),
+ SD = sd(IGA.Price, na.rm = TRUE),
+ n = n(),
+ Missing = sum(is.na(IGA.Price)))
+
+```
+```{r}
+store %>% summarise(Min = min(WOW.Price,na.rm = TRUE),
+ Q1 = quantile(WOW.Price,probs = .25,na.rm = TRUE),
+ Median = median(WOW.Price, na.rm = TRUE
+),
+ Q3 = quantile(WOW.Price,probs = .75,na.rm = TRUE),
+ Max = max(WOW.Price,na.rm = TRUE),
+ Mean = mean(WOW.Price, na.rm = TRUE),
+ SD = sd(WOW.Price, na.rm = TRUE),
+ n = n(),
+ Missing = sum(is.na(WOW.Price)))
+
+```
+```{r}
+store <- store %>% mutate(Difference = WOW.Price - IGA.Price)
+store %>% summarise(Min = min(Difference,na.rm = TRUE),
+ Q1 = quantile(Difference,probs = .25,na.rm = TRUE),
+ Median = median(Difference, na.rm = TRUE),
+ Q3 = quantile(Difference,probs = .75,na.rm = TRUE),
+ Max = max(Difference,na.rm = TRUE),
+ Mean = mean(Difference, na.rm = TRUE),
+ SD = sd(Difference, na.rm = TRUE),
+ n = n(),
+ Missing = sum(is.na(Difference)))
+
+```
+
+## Data exploration
+```{r IGA, echo=FALSE}
+
+
+ggplot(store, aes(sample = IGA.Price)) +
+  geom_qq() +
+  labs(title = "Plot for IGA Price",
+       x = "Theoretical Quantiles",
+       y = "Price in AUD") +
+  theme_bw() +
+  theme(plot.title = element_text(color = "indianred"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14))
+
+
+
+```
+```{r}
+
+ggplot(store, aes(sample = WOW.Price)) +
+  geom_qq() +
+  labs(title = "Plot for WOW Price",
+       x = "Theoretical Quantiles",
+       y = "Price in AUD") +
+  theme_bw() +
+  theme(plot.title = element_text(color = "indianred"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14))
+
+```
+
+
+```{r pressure, echo=FALSE}
+bp <- ggplot(store, aes(x = "", y = Difference))
+  bp + geom_boxplot() +
+    labs(title = "Box Plot of Price Differences between \n IGA and Woolworths",
+       x = "",
+       y = "Price Difference")
+```
+```{r echo=FALSE}
+
+
+```
+
+
+```{r pressure, echo=FALSE}
+hist_F <- ggplot(store, aes(x = Difference))
+colors <- c(rep("green",15), rep("yellow",1), rep("red",16))
+
+hist_F + geom_histogram(binwidth = 0.25, fill = colors, alpha = 0.8) +
+  labs(title = "The Difference of IGA and Woolworths Prices",
+       subtitle = "Woolworths Price - IGA Price", 
+       x = "Difference",
+       y = "Count") +
+  xlim(-3.75,4)
+```
+
+
+```{r pressure, echo=FALSE}
+t.test(store$IGA.Price, store$WOW.Price,
+       paired = TRUE,
+       mu=0,
+       alternative = "two.sided")
+```
+
+
+```{r pressure, echo=FALSE}
+bp <- ggplot(store, aes(x = "", y = Difference))
+bp + geom_boxplot() +
+  facet_grid(.~WOW.Category) +
+  labs(title = "Box Plots of Price Difference by Category",
+       y = "Price Difference",
+       x = "Categories")
+```
+
+
+```{r pressure, echo=FALSE}
+store %>% filter(WOW.Category=='Fruit & Veg') %>% .[["Difference"]] %>%
+t.test(mu = 0, 
+       alternative = "two.sided")
+
+```
+
+
+```{r pressure, echo=FALSE}
+store %>% filter(WOW.Category=='Fruit & Veg') %>% .[["Difference"]] %>% sd()
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

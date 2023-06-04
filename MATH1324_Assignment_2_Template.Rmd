@@ -1,0 +1,145 @@
+---
+title: "Assignment 2"
+author: "Sankalp Dangwal S4000592"
+output:
+  slidy_presentation:
+    font_adjustment: 0
+    highlight: haddock
+    mathjax: default
+    df_print: paged
+  ioslides_presentation:
+    highlight: haddock
+subtitle: "World Freedom Data 2016-2017"
+---
+
+```{r setup, include=FALSE}
+# Use this chunk to quietly load your pacakges
+
+knitr::opts_chunk$set(
+	fig.align = "center",
+	message = FALSE,
+	warning = FALSE
+)
+# Packages loaded in this chunk will not appear in the presentation. 
+
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(tidyverse)
+library(knitr)
+```
+
+
+# Introduction
+
+The World Freedom Report examines the levels of Freedom in 155 countries by analyzing survey data collected from nationally representative samples of each country's population between 2013 and 2019. This data helps estimate how economic production, social support, life expectancy, freedom, absence of corruption, and generosity contribute to Freedom evaluations.
+Our report aims to investigate whether there was a statistically significant change in the Freedom scores of the surveyed countries between 2015 and 2019. 
+
+# Problem Statement
+
+ Measuring Freedom levels is important because it helps identify policies that promote the well-being of populations, making it valuable for politicians, citizens, and policy planners seeking to improve their societies.
+To address our research question, we will utilize statistical analysis.
+We will focus on specific data from the World Freedom Report, including the countries' geographical location and their reported Freedom scores for 2015 and 2019. Descriptive statistics will be used to summarize the data, and a boxplot will provide a visual representation of potential differences in the reported Freedom levels between the two years. To determine the statistical significance of any observed changes, we will conduct an independent samples t-test on the data.
+
+# Data
+The data was obtained from the Kaggle open data website (URL: https://www.kaggle.com/unsdsn/world-happiness?fbclid=IwAR30I6bEoTj8lUUB8et6CpVWFoEd3HAjwNCSHy0G_3UTPGSRNESG11SjBvo).
+
+The data contains freedom scores for each country, these being a metric measure obtained from the Gallup World Poll which asked respondents to rank the quality of their life on a scale of 0 (the worst) to 10 (the best). The responses were used to measure freedom in the 155 countries surveyed by the poll, and were drawn from nationally representative samples. Gallup weights were used to transform the responses into representative estimates.
+
+# Data Cont.
+read in data
+```{r}
+df_2016 = read.csv("C:/Users/sanka/OneDrive/Desktop/Dataset R/2016.csv")
+df_2017 = read.csv("C:/Users/sanka/OneDrive/Desktop/Dataset R/2017.csv")
+```
+Subset and join the relevant data
+```{r}
+df_2016 %>% select(Country,'Freedom')-> df_2016_sub
+df_2017 %>% select(Country, 'Freedom')-> df_2017_sub
+df_2017_sub %>% rename("Country"="Country","2017"="Freedom") -> df_2017_sub
+df_2016_sub %>% rename("2016"="Freedom") -> df_2016_sub
+df_2016_sub %>% left_join(df_2017_sub, by = "Country") -> DF
+head(DF)
+
+plot(Sepal.Length ~ Petal.Length, data = iris)
+```
+# Data cont. gather
+```{r}
+DF <- DF %>% gather("2016","2017",key = "Year", value = "Freedom")
+DF$Year <- as.factor(DF$Year)
+str(DF)
+```
+
+# Decsriptive Statistics and visualisation
+```{r}
+table1 <- DF %>%
+  group_by(Year) %>%
+  summarize(Min = min(Freedom, na.rm = TRUE),
+            Q1 = quantile(Freedom, probs = 0.25, na.rm = TRUE),
+            Median = median(Freedom, na.rm = TRUE),
+            Q3 = quantile(Freedom, probs = 0.75, na.rm = TRUE),
+            Max = max(Freedom, na.rm = TRUE),
+            Mean = mean(Freedom, na.rm = TRUE),
+            SD = sd(Freedom, na.rm = TRUE),
+            n = n(),
+            Missing = sum(is.na(Freedom)))
+
+```
+
+# Decsriptive Statistics and visualisation cont.
+
+```{r}
+knitr::kable(table1)
+```
+
+# Decsriptive Statistics and visualisation cont.
+
+```{r}
+sum(sapply(DF, is.nan))
+
+```
+
+# Decsriptive Statistics and visualisation cont.
+
+```{r}
+colSums(is.na(DF))
+```
+
+# Hypothesis Testing
+
+To examine the hypothesis of a change in reported freedom between 2016 and 2017, we will employ a two-sample t-test. This test is selected due to the expectation that the demographic composition of a country may vary over time, resulting in different samples used to assess happiness levels in 2016 and 2017.
+
+
+```{r}
+model1 <- lm(Sepal.Length ~ Petal.Length, data = iris)
+model1 %>% summary()
+```
+
+# Hypthesis Testing Cont.
+```{r}
+df_2016 <- DF %>% filter(Year == 2016)
+qqplot(qnorm(ppoints(nrow(df_2016))), df_2016$Freedom, main = "QQPlot for 2016 Freedom")
+```
+
+# Discussion
+
+Our investigation found that global freedom scores did not significantly change in the period between 2016 and 2017. We reached this conclusion based on the p-value of our test statistic, which was greater than the significance level.
+
+The strengths of our investigation: 
+- The data we used had a large sample size. Most countries on the planet were included in the World Gallup Poll, which strengthens the generalizability of our results. 
+- The data we used was consistent, as all respondents were asked the same question when reporting their freedom levels.
+
+The limitations of our investigation: 
+- The data used to calculate freedom scores was derived from the answers of a survey. Survey responses can sometimes be untrustworthy sources of information as respondents may not answer the questions honestly, may omit answers, and may respond unconsciously. 
+- Freedom is a contestable concept that can take different meanings depending on its cultural context. Comparing freedom levels across different countries using a singular metric does not account for these cultural differences. A similar problem applies to the variations in freedom's meaning from one person to another, making it hard to objectively compare the concept across a population's members.
+
+Directions for future investigations: 
+- Since our investigation did not find a statistically significant change in freedom levels for the period 2016-2017, we advise future research to use alternative data collection methods to explore the question of global freedom levels further. 
+- For example, researchers could use focus groups and interviews to obtain more nuanced categorical data concerning global populations' self-reported freedom levels. Researchers would thus not have to rely on a singular metric to quantify a term as ambiguous as freedom. This would also give researchers more flexibility in accounting for possible cultural differences. 
+- Researchers could also look at the data for a wider timeframe, as the change in freedom levels over time might be more suited to an evaluation in terms of decades rather than years.
+
+One take-home message: 
+- Though our investigation did not find a statistically significant change in freedom levels between 2016 and 2017, this should not discourage further research from being undertaken. Through the application of different statistical methods and the use of different kinds of data, freedom measures may indeed prove to be a useful tool for future policy-making.
+
+# References
+Data sourced from: https://www.kaggle.com/unsdsn/world-happiness?fbclid=IwAR30I6bEoTj8lUUB8et6CpVWFoEd3HAjwNCSHy0G_3UTPGSRNESG11SjBvo

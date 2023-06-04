@@ -1,0 +1,33 @@
+---
+title: "Assignment 2"
+subtitle: "World Freedom Report 2016 - 2017"
+Output:
+  slidy_presentation: default
+  ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Original
+
+Rpubs link :
+
+## Introduction
+The World Freedom Report examines the levels of Freedom in 155 countries by analyzing survey data collected from nationally representative samples of each country's population between 2013 and 2019. This data helps estimate how economic production, social support, life expectancy, freedom, absence of corruption, and generosity contribute to Freedom evaluations.
+Our report aims to investigate whether there was a statistically significant change in the Freedom scores of the surveyed countries between 2015 and 2019. Measuring Freedom levels is important because it helps identify policies that promote the well-being of populations, making it valuable for politicians, citizens, and policy planners seeking to improve their societies.
+To address our research question, we will utilize statistical analysis. We will focus on specific data from the World Freedom Report, including the countries' geographical location and their reported Freedom scores for 2015 and 2019. Descriptive statistics will be used to summarize the data, and a boxplot will provide a visual representation of potential differences in the reported Freedom levels between the two years. To determine the statistical significance of any observed changes, we will conduct an independent samples t-test on the data.
+
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
